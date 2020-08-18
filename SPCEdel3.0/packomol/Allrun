@@ -1,0 +1,6 @@
+#!/bin/sh
+
+PACKMOL_BIN=~/MolecularDynamics/packmol/packmol
+
+$PACKMOL_BIN < SPCE.inp 
+

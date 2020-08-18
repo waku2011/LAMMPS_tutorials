@@ -1,0 +1,22 @@
+
+       	#     atom_id mass 
+	mass 1  1.0080  
+        mass 2 15.9994
+
+	#           atom_i       atom_j       epsilon	sigma 
+        pair_coeff 1      1      0.000 	0.000
+	pair_coeff 2      2      0.1553 	3.5533
+	pair_coeff 1      2      0.000 	0.000
+
+	#           bond_id     k_harmonic	r0             
+        bond_coeff 1    1000.0		1.0
+
+	#            angle_id    k_harmonic	theta0 
+        angle_coeff 1	1000.0		109.47
+
+        group gSPCE type 1 2
+	group hyd type 1
+	group oxy type 2
+
+	fix fShakeSPCE gSPCE shake 0.0001 10 100 b 1 a 1
+

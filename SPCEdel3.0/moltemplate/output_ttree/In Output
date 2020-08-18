@@ -1,0 +1,3 @@
+  
+     thermo 100
+     dump 1 all atom 100 dump.lammpstrj

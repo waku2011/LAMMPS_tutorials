@@ -1,0 +1,15 @@
+# distance tol. (typically 2.0A)
+tolerance 2.0
+
+
+# define output file
+output water_output.xyz
+
+# output format
+filetype xyz
+
+# setup of water molecules
+structure water.xyz
+ number 901
+ inside box 0. 0. 0. 30. 30. 30.
+end structure

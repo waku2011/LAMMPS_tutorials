@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cp ../packmol/water_output.xyz .
+
+moltemplate.sh -xyz water_output.xyz -atomstyle "full" -vmd system.lt

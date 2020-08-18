@@ -1,0 +1,4 @@
+#!/bin/sh
+
+cp ../moltemplate/system.data .
+cp ../moltemplate/system.in.* .

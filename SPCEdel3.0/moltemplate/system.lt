@@ -78,5 +78,5 @@ fix 3 all nve
  run 10000
 unfix 3
 
-write_restart   Water.restart
+write_restart   water.restart
 }

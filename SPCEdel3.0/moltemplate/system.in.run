@@ -31,10 +31,9 @@ variable          pe equal pe　#ポテンシャルエネルギー
 
 # 削除平面作成
 # ? 範囲指定
-region top plane 0 0 100 0 0 -1 units box
+#region top plane 0 0 100 0 0 -1 units box
 #region top plane 0 0 100 0 0 -1 units lattice
-
-fix wall all wall/region top lj93 0.0 0.0 1.0
+#fix wall all wall/region top lj93 0.0 0.0 1.0
 
 #　? 削除
 #delete_atoms region top compress yes

@@ -1,0 +1,244 @@
+LAMMPS (3 Mar 2020)
+
+
+# ----------------- Init Section -----------------
+
+include "system.in.init"
+            units real
+            atom_style      full
+            bond_style      harmonic
+            angle_style     harmonic
+	    pair_style	    lj/cut/coul/long 12.0 13.0
+	    pair_modify	    mix arithmetic
+            dihedral_style  harmonic
+	    kspace_style    pppm 1.0e-5
+	    kspace_modify   gewald 0.29
+   variable cutoff equal 13.0 # Angstroms
+   boundary p p p
+#   boundary p p s
+
+
+# ----------------- Atom Definition Section -----------------
+
+read_data "system.data"
+  orthogonal box = (-1 -1 -1) to (31 31 101)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  2703 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  1802 bonds
+  reading angles ...
+  901 angles
+  2 = max # of 1-2 neighbors
+  1 = max # of 1-3 neighbors
+  1 = max # of 1-4 neighbors
+  2 = max # of special neighbors
+  special bonds CPU = 0.0005571 secs
+  read_data CPU = 0.0189018 secs
+
+# ----------------- Settings Section -----------------
+
+include "system.in.settings"
+
+       	#     atom_id mass
+	mass 1  1.0080
+        mass 2 15.9994
+
+	#           atom_i       atom_j       epsilon	sigma
+        pair_coeff 1      1      0.000 	0.000
+	pair_coeff 2      2      0.1553 	3.5533
+	pair_coeff 1      2      0.000 	0.000
+
+	#           bond_id     k_harmonic	r0
+        bond_coeff 1    1000.0		1.0
+
+	#            angle_id    k_harmonic	theta0
+        angle_coeff 1	1000.0		109.47
+
+        group gSPCE type 1 2
+2703 atoms in group gSPCE
+	group hyd type 1
+1802 atoms in group hyd
+	group oxy type 2
+901 atoms in group oxy
+
+	fix fShakeSPCE gSPCE shake 0.0001 10 100 b 1 a 1
+  0 = # of size 2 clusters
+  0 = # of size 3 clusters
+  0 = # of size 4 clusters
+  901 = # of frozen angles
+  find clusters CPU = 0.0002974 secs
+
+
+
+# ----------------- Output Section -----------------
+
+include "system.in.output"
+     thermo 100
+#     dump 1 all atom 100 dump.lammpstrj
+     dump 1 all custom 100 dump.lammpstrj id mol type x y z ix iy iz
+
+
+# ----------------- Run Section -----------------
+
+include "system.in.run"
+
+# 速度の割り当て
+velocity         all create 298.0 4928459
+
+timestep 1.0
+
+thermo_style custom step temp pe etotal press vol atoms
+
+neigh_modify every 1 delay 0 check yes
+
+#　制御に用いる変数(QA)
+variable          step equal step #ステップ数
+variable          density equal density #密度
+variable          temp equal temp　#温度
+variable          etotal equal etotal #総エネルギー
+variable          pxx equal pxx #圧力
+variable          pyy equal pyy
+variable          pzz equal pzz
+variable          lx equal lx　#boxの大きさ
+variable          ly equal ly
+variable          lz equal lz
+variable          zlo equal zlo　#boxの境界
+variable          zhi equal zhi
+variable          xlo equal xlo
+variable          xhi equal xhi
+variable          ylo equal ylo
+variable          yhi equal yhi
+variable          pe equal pe　#ポテンシャルエネルギー
+
+#change_box all boundary p p f
+
+# 削除平面作成
+# ? 範囲指定
+#region top plane 0 0 100 0 0 -1 units box
+#region top plane 0 0 100 0 0 -1 units lattice
+#fix wall all wall/region top lj93 0.0 0.0 1.0
+
+#　? 削除
+#delete_atoms region top compress yes
+
+fix 1 all npt temp 298.0 298.0 100.0 iso 1.0 1.0 1000.0
+ run 10000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:332)
+WARNING: For better accuracy use 'pair_modify table 0' (src/kspace.cpp:353)
+  G vector (1/distance) = 0.29
+  grid = 27 27 64
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00178668
+  estimated relative force accuracy = 5.38054e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 82076 46656
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 15
+  ghost atom cutoff = 15
+  binsize = 7.5, bins = 5 5 14
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+SHAKE stats (type/ave/delta) on step 0
+  1 0.999974 2.5605e-06
+  1 109.476 0.000219297
+Per MPI rank memory allocation (min/avg/max) = 22.76 | 22.76 | 22.76 Mbytes
+Step Temp PotEng TotEng Press Volume Atoms 
+       0          298    47933.259    49533.054    138697.65       104448     2703 
+SHAKE stats (type/ave/delta) on step 100
+  1 1.00026 0.000106649
+  1 109.47 0.0115126
+     100    2053.2391   -1109.4269    9913.2619    9222.7971    121708.22     2703 
+SHAKE stats (type/ave/delta) on step 200
+  1 1.00011 3.18401e-05
+  1 109.47 0.00395965
+     200    786.70658   -3100.2253    1123.1609    2382.8698    128392.05     2703 
+SHAKE stats (type/ave/delta) on step 300
+  1 1.00004 2.36114e-05
+  1 109.47 0.00203917
+     300    436.91708   -3894.1861   -1548.6235    388.74795    131328.25     2703 
+SHAKE stats (type/ave/delta) on step 400
+  1 1 6.87452e-06
+  1 109.47 0.000705979
+     400    308.37144    -4281.023   -2625.5498   -208.43081    132180.01     2703 
+SHAKE stats (type/ave/delta) on step 500
+  1 0.999981 2.47477e-06
+  1 109.47 0.000340478
+     500    265.43105   -4512.1165   -3087.1661   -358.48163    131825.24     2703 
+SHAKE stats (type/ave/delta) on step 600
+  1 0.999978 8.84575e-07
+  1 109.47 0.000107558
+     600    266.65011   -4614.5626   -3183.0678   -235.29215    130971.29     2703 
+SHAKE stats (type/ave/delta) on step 700
+  1 0.999986 3.41704e-06
+  1 109.47 0.000302355
+     700    287.71032   -4562.0905   -3017.5352   -52.951518    130240.41     2703 
+SHAKE stats (type/ave/delta) on step 800
+  1 0.99999 1.78672e-06
+  1 109.47 0.000197504
+     800    313.53725   -4481.9982   -2798.7926   -68.346063    129788.61     2703 
+SHAKE stats (type/ave/delta) on step 900
+  1 0.999988 8.55645e-07
+  1 109.47 8.18319e-05
+     900    314.03697   -4424.7294   -2738.8411   -137.69954    129372.33     2703 
+SHAKE stats (type/ave/delta) on step 1000
+  1 0.99999 1.36327e-06
+  1 109.47 0.00011059
+    1000    292.26288   -4404.1933   -2835.1979   -41.456971    128900.82     2703 
+SHAKE stats (type/ave/delta) on step 1100
+  1 0.999984 6.39519e-07
+  1 109.47 7.65739e-05
+    1100    295.71573     -4485.97   -2898.4382   -210.90154    128442.57     2703 
+SHAKE stats (type/ave/delta) on step 1200
+  1 0.999977 6.26561e-07
+  1 109.47 6.49929e-05
+    1200    290.99432   -4465.3417   -2903.1564   -198.87933    127674.95     2703 
+SHAKE stats (type/ave/delta) on step 1300
+  1 0.999982 9.57311e-07
+  1 109.47 0.000129262
+    1300    297.34391   -4448.4137   -2852.1411   -8.8448775    126834.48     2703 
+SHAKE stats (type/ave/delta) on step 1400
+  1 0.999991 6.89231e-07
+  1 109.47 8.422e-05
+    1400    306.91475   -4435.2617   -2787.6086   -62.496141     126385.8     2703 
+SHAKE stats (type/ave/delta) on step 1500
+  1 0.999988 5.4799e-07
+  1 109.47 6.20422e-05
+    1500    306.56074   -4425.5293   -2779.7767   -213.32205    126038.04     2703 
+SHAKE stats (type/ave/delta) on step 1600
+  1 0.999981 6.57624e-07
+  1 109.47 7.50613e-05
+    1600    295.69119   -4394.6397   -2807.2396   -146.53462    125390.52     2703 
+SHAKE stats (type/ave/delta) on step 1700
+  1 0.99998 6.52006e-07
+  1 109.47 6.14312e-05
+    1700    298.87657   -4416.3524   -2811.8518   -208.62404       124691     2703 
+SHAKE stats (type/ave/delta) on step 1800
+  1 0.99998 1.00913e-06
+  1 109.47 8.92289e-05
+    1800    293.32309   -4361.8058   -2787.1187   -73.897902     123923.5     2703 
+SHAKE stats (type/ave/delta) on step 1900
+  1 0.999987 7.32235e-07
+  1 109.47 9.55141e-05
+    1900    297.16273   -4334.6355   -2739.3355    -58.92036    123340.83     2703 
+SHAKE stats (type/ave/delta) on step 2000
+  1 0.999986 6.1487e-07
+  1 109.47 5.95156e-05
+    2000    295.49753   -4311.0413   -2724.6808   -92.405714    122849.66     2703 
+SHAKE stats (type/ave/delta) on step 2100
+  1 0.999984 6.20657e-07
+  1 109.47 8.46851e-05
+    2100    298.04218   -4322.9394   -2722.9182   -134.44073    122297.22     2703 
+SHAKE stats (type/ave/delta) on step 2200
+  1 0.999981 8.4164e

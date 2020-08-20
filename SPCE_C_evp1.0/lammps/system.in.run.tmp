@@ -1,48 +1,3 @@
-# --------------- water ------------------
-
-import "SPCE.lt"
-
-# Create a rhombohedral box of water. (A rectangular box works also.)
-
-wat  =  new SPCE  [10].move(  0.0,  0.0,  3.0)
-                  [10].move(  0.0,  3.0,  0.0)
-                  [10].move(  3.0,  0.0,  0.0)
-
-wat[*][*][*].move(2.5, 2.5, 11.0)
-
-# -------------- graphene ---------------
-
-import "Graphene_sheet.lt"
-
-#--- Create graphene-sheet instances
-
-# create 3 walls
-wall = new Graphene_Wall[3].move(0, 0, 3.00)
-wall[*].move(0, 0, 1)    # shift z by 1.0A
-wall[1].move(0, 1.42, 0) 
-
-# --------------------------------------
-
-write_once("In Init"){
-   variable cutoff equal 13.0 # Angstroms
-   boundary p p p
-#   boundary p p s
-}
-
-write_once("Data Boundary"){
-   -1.0 31.0 xlo xhi
-   -1.0 31.0 ylo yhi
-   -1.0 101.0 zlo zhi
-}
-
-
-write_once("In Output"){
-     thermo 100
-#     dump 1 all atom 100 dump.lammpstrj
-     dump 1 all custom 100 dump.lammpstrj id mol type x y z ix iy iz
-}
-
-write_once("In Run"){
 
 # 速度の割り当て
 velocity         all create 298.0 4928459
@@ -108,4 +63,3 @@ fix 3 all nve
 unfix 3
 
 write_restart   water.restart
-}

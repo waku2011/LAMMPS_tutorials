@@ -1,0 +1,65 @@
+
+# 速度の割り当て
+velocity         all create 298.0 4928459
+
+timestep 1.0
+
+thermo_style custom step temp pe etotal press vol atoms  
+
+neigh_modify every 1 delay 0 check yes
+
+#　制御に用いる変数(QA)
+variable          step equal step #ステップ数
+variable          density equal density #密度
+variable          temp equal temp　#温度
+variable          etotal equal etotal #総エネルギー
+variable          pxx equal pxx #圧力
+variable          pyy equal pyy
+variable          pzz equal pzz
+variable          lx equal lx　#boxの大きさ
+variable          ly equal ly
+variable          lz equal lz
+variable          zlo equal zlo　#boxの境界
+variable          zhi equal zhi
+variable          xlo equal xlo
+variable          xhi equal xhi
+variable          ylo equal ylo
+variable          yhi equal yhi
+variable          pe equal pe　#ポテンシャルエネルギー
+
+#change_box all boundary p p f
+
+# 削除平面作成
+# ? 範囲指定
+#region top plane 0 0 100 0 0 -1 units box
+#region top plane 0 0 100 0 0 -1 units lattice
+#fix wall all wall/region top lj93 0.0 0.0 1.0
+
+# Solvent(water) evapolation region setting (top 10% box region)
+region top block -1 31 -1 31 90 101
+
+# Solvent evapolation (30 atoms = 10 water molecules per 1000 steps)
+fix evp all evaporate 1000 30 top 49892  molecule yes
+compute myTemp all temp
+compute_modify myTemp dynamic/dof yes
+
+#　? 削除
+#delete_atoms region top compress yes
+
+fix 1 all npt temp 298.0 298.0 100.0 iso 1.0 1.0 1000.0
+ run 10000
+unfix 1
+
+fix 2 all nvt temp 298.0 298.0 100.0
+ run 20000
+unfix 2
+
+#rdfの計算
+#compute	myRDF oxy rdf 50 cutoff 13.0
+#fix		fout2 oxy ave/time 1000 10 10000 c_myRDF[*] file tmp.rdf mode vector
+
+fix 3 all nve
+ run 10000
+unfix 3
+
+write_restart   water.restart

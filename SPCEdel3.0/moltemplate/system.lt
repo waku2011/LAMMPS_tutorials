@@ -58,6 +58,14 @@ variable          pe equal pe　#ポテンシャルエネルギー
 #region top plane 0 0 100 0 0 -1 units lattice
 #fix wall all wall/region top lj93 0.0 0.0 1.0
 
+# Solvent(water) evapolation region setting (top 10% box region)
+region top block -1 31 -1 31 90 101
+
+# Solvent evapolation (30 atoms = 10 water molecules per 1000 steps)
+fix evp all evapolate 1000 30 top 49892  molecule yes
+compute myTemp all temp
+compute_modify myTemp dynamic/dof yes
+
 #　? 削除
 #delete_atoms region top compress yes
 

@@ -4,5 +4,5 @@ cp ../moltemplate/system.data .
 cp ../moltemplate/system.in .
 cp ../moltemplate/system.in.* .
 
-lmp -in system.in
-#mpirun -np 4 lmp -in system.in
+#lmp -in system.in
+mpirun -np 4 lmp -in system.in

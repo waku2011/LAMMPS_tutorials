@@ -39,18 +39,20 @@ variable          pe equal pe　#ポテンシャルエネルギー
 region top block -1 31 -1 31 90 101
 
 # Solvent evapolation (30 atoms = 10 water molecules per 1000 steps)
-fix evp all evaporate 1000 30 top 49892  molecule yes
-compute myTemp all temp
+fix evp mobile evaporate 1000 30 top 49892  molecule yes
+compute myTemp mobile temp
 compute_modify myTemp dynamic/dof yes
 
 #　? 削除
 #delete_atoms region top compress yes
 
-fix 1 all npt temp 298.0 298.0 100.0 iso 1.0 1.0 1000.0
+# -- run protocols ---
+
+fix 1 mobile npt temp 298.0 298.0 100.0 iso 1.0 1.0 1000.0
  run 10000
 unfix 1
 
-fix 2 all nvt temp 298.0 298.0 100.0
+fix 2 mobile nvt temp 298.0 298.0 100.0
  run 20000
 unfix 2
 
@@ -58,8 +60,8 @@ unfix 2
 #compute	myRDF oxy rdf 50 cutoff 13.0
 #fix		fout2 oxy ave/time 1000 10 10000 c_myRDF[*] file tmp.rdf mode vector
 
-fix 3 all nve
+fix 3 mobile nve
  run 10000
 unfix 3
 
-write_restart   water.restart
+write_restart   system.restart

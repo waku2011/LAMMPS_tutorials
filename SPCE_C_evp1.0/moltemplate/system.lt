@@ -1,44 +1,117 @@
-# --------------- water ------------------
+SPCE {
+       write("Data Atoms"){
+            $atom:H1     $mol @atom:H  0.4238  0.8165  0.0000  0.5773
+            $atom:H2     $mol @atom:H  0.4238 -0.8165  0.0000  0.5773
+            $atom:O      $mol @atom:O -0.8476  0.0000  0.0000  0.0000
+        }
+        write("Data Bonds"){
+            $bond:OH1      @bond:OH    $atom:H1    $atom:O
+            $bond:OH2      @bond:OH    $atom:H2    $atom:O
+        }
+        write("Data Angles"){
+            $angle:HOH     @angle:HOH    $atom:H1    $atom:O     $atom:H2
+        }
+        write_once("Data Masses") {
+            @atom:H  1.0080
+            @atom:O 15.9994
+        }
 
-import "SPCE.lt"
+        write_once("In Settings") {
 
-# Create a rhombohedral box of water. (A rectangular box works also.)
+        #     atom_id mass
+        mass @atom:H  1.0080
+        mass @atom:O 15.9994
 
-wat  =  new SPCE  [10].move(  0.0,  0.0,  3.0)
-                  [10].move(  0.0,  3.0,  0.0)
-                  [10].move(  3.0,  0.0,  0.0)
+        #           atom_i       atom_j       epsilon   sigma
+        pair_coeff @atom:H      @atom:H      0.000      0.000
+        pair_coeff @atom:O      @atom:O      0.1553     3.5533
+        pair_coeff @atom:H      @atom:O      0.000      0.000
 
-wat[*][*][*].move(2.5, 2.5, 11.0)
+        #           bond_id     k_harmonic      r0
+        bond_coeff @bond:OH    1000.0           1.0
 
-# -------------- graphene ---------------
+        #            angle_id    k_harmonic     theta0
+        angle_coeff @angle:HOH  1000.0          109.47
 
-import "Graphene_sheet.lt"
+        group gSPCE type @atom:H @atom:O
+        group hyd type @atom:H
+        group oxy type @atom:O
 
-#--- Create graphene-sheet instances
+        fix fShakeSPCE gSPCE shake 0.0001 10 100 b @bond:OH a @angle:HOH
 
-# create 3 walls
-wall = new Graphene_Wall[3].move(0, 0, 3.00)
-wall[*].move(0, 0, 1)    # shift z by 1.0A
-wall[1].move(0, 1.42, 0) 
+        }
 
-# --------------------------------------
-
-write_once("In Init"){
-   variable cutoff equal 13.0 # Angstroms
-   boundary p p p
-#   boundary p p s
+        write_once("In Init") {
+            units           real
+            atom_style      full
+            boundary        p p p
+            bond_style      harmonic
+            angle_style     harmonic
+            pair_style      lj/cut/coul/long 12.0 13.0
+            pair_modify     mix arithmetic
+            dihedral_style  harmonic
+            kspace_style    pppm 1.0e-5
+            kspace_modify   gewald 0.29
+        }
 }
 
+wat = new SPCE[901]
+
+Graphene {
+           write("Data Atoms"){
+            $atom:C      $mol @atom:C  0.0000  0.0000  0.0000  0.0000
+        }
+        write("Data Bonds"){
+        }
+        write("Data Angles"){
+        }
+        write_once("Data Masses") {
+            @atom:C  12.0107
+        }
+
+        write_once("In Settings") {
+        #     atom_id mass
+        mass  @atom:C  12.0107
+
+        # These Lennard-Jones parameters come from
+        #  R. Saito, R. Matsuo, T. Kimura, G. Dresselhaus, M.S. Dresselhaus,
+        #  Chem Phys Lett, 348:187 (2001)
+        pair_coeff  @atom:C      @atom:C     0.068443   3.407
+
+        # --- We must eventually specify the interactions between the atoms ---
+        # --- in different molecule types (graphene-water interactions).    ---
+        # (See Laurent Joly, J. Chem. Phys. 135(21):214705 (2011) for details
+        pair_coeff  @atom:C      @atom:SPCE/O      0.114     3.28
+        pair_coeff  @atom:C      @atom:SPCE/H      0.0       3.28
+
+
+        # Define a group consisting of only carbon atoms in graphene molecules
+        group gGraphene type @atom:C
+
+        # Only the gGraphene atoms are immobile.
+        group mobile subtract all gGraphene
+
+        # Use "neigh_modify" to turn off calculation of interactions between immobilized
+        # atoms. (Note: group "gGraphene" was defined in the file "system.insettings")
+        neigh_modify exclude group gGraphene gGraphene
+
+        }
+
+
+}
+
+graphene = new Graphene[1344]
+
+# ------------------------------------------------------------------
+
 write_once("Data Boundary"){
-   -1.0 31.0 xlo xhi
-   -1.0 31.0 ylo yhi
+   -1.0  31.0 xlo xhi
+   -1.0  31.0 ylo yhi
    -1.0 101.0 zlo zhi
 }
 
-
 write_once("In Output"){
      thermo 100
-#     dump 1 all atom 100 dump.lammpstrj
      dump 1 all custom 100 dump.lammpstrj id mol type x y z ix iy iz
 }
 
@@ -84,18 +157,20 @@ variable          pe equal pe　#ポテンシャルエネルギー
 region top block -1 31 -1 31 90 101
 
 # Solvent evapolation (30 atoms = 10 water molecules per 1000 steps)
-fix evp all evaporate 1000 30 top 49892  molecule yes
-compute myTemp all temp
+fix evp mobile evaporate 1000 30 top 49892  molecule yes
+compute myTemp mobile temp
 compute_modify myTemp dynamic/dof yes
 
 #　? 削除
 #delete_atoms region top compress yes
 
-fix 1 all npt temp 298.0 298.0 100.0 iso 1.0 1.0 1000.0
+# -- run protocols ---
+
+fix 1 mobile npt temp 298.0 298.0 100.0 iso 1.0 1.0 1000.0
  run 10000
 unfix 1
 
-fix 2 all nvt temp 298.0 298.0 100.0
+fix 2 mobile nvt temp 298.0 298.0 100.0
  run 20000
 unfix 2
 
@@ -103,9 +178,9 @@ unfix 2
 #compute	myRDF oxy rdf 50 cutoff 13.0
 #fix		fout2 oxy ave/time 1000 10 10000 c_myRDF[*] file tmp.rdf mode vector
 
-fix 3 all nve
+fix 3 mobile nve
  run 10000
 unfix 3
 
-write_restart   water.restart
+write_restart   system.restart
 }

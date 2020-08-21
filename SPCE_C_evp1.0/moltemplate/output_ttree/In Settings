@@ -1,40 +1,47 @@
 
-       	#     atom_id mass 
-	mass 1  1.0080  
+        #     atom_id mass
+        mass 1  1.0080
         mass 2 15.9994
 
-	#           atom_i       atom_j       epsilon	sigma 
-        pair_coeff 1      1      0.000 	0.000
-	pair_coeff 2      2      0.1553 	3.5533
-	pair_coeff 1      2      0.000 	0.000
+        #           atom_i       atom_j       epsilon   sigma
+        pair_coeff 1      1      0.000      0.000
+        pair_coeff 2      2      0.1553     3.5533
+        pair_coeff 1      2      0.000      0.000
 
-	#           bond_id     k_harmonic	r0             
-        bond_coeff 1    1000.0		1.0
+        #           bond_id     k_harmonic      r0
+        bond_coeff 1    1000.0           1.0
 
-	#            angle_id    k_harmonic	theta0 
-        angle_coeff 1	1000.0		109.47
+        #            angle_id    k_harmonic     theta0
+        angle_coeff 1  1000.0          109.47
 
         group gSPCE type 1 2
-	group hyd type 1
-	group oxy type 2
+        group hyd type 1
+        group oxy type 2
 
-	fix fShakeSPCE gSPCE shake 0.0001 10 100 b 1 a 1
+        fix fShakeSPCE gSPCE shake 0.0001 10 100 b 1 a 1
 
-    # These Lennard-Jones parameters come from
-    #  R. Saito, R. Matsuo, T. Kimura, G. Dresselhaus, M.S. Dresselhaus,
-    #  Chem Phys Lett, 348:187 (2001)
+        #     atom_id mass
+        mass  3  12.0107
 
-    # Define a group consisting of only carbon atoms in graphene molecules
-    group gGraphene type 3
+        # These Lennard-Jones parameters come from
+        #  R. Saito, R. Matsuo, T. Kimura, G. Dresselhaus, M.S. Dresselhaus,
+        #  Chem Phys Lett, 348:187 (2001)
+        pair_coeff  3      3     0.068443   3.407
 
-# --- We must eventually specify the interactions between the atoms ---
-# --- in different molecule types (graphene-water interactions).    ---
-# (See Laurent Joly, J. Chem. Phys. 135(21):214705 (2011) for details
+        # --- We must eventually specify the interactions between the atoms ---
+        # --- in different molecule types (graphene-water interactions).    ---
+        # (See Laurent Joly, J. Chem. Phys. 135(21):214705 (2011) for details
+        pair_coeff  3      2      0.114     3.28
+        pair_coeff  3      1      0.0       3.28
 
-pair_coeff 3 2  0.114 3.28
-pair_coeff 3 1  0.0   3.28
-pair_coeff 3 3  0.068443 3.407
 
-# Only the Cgraphene atoms are immobile.
-group mobile subtract all gGraphene
+        # Define a group consisting of only carbon atoms in graphene molecules
+        group gGraphene type 3
+
+        # Only the gGraphene atoms are immobile.
+        group mobile subtract all gGraphene
+
+        # Use "neigh_modify" to turn off calculation of interactions between immobilized
+        # atoms. (Note: group "gGraphene" was defined in the file "system.insettings")
+        neigh_modify exclude group gGraphene gGraphene
 

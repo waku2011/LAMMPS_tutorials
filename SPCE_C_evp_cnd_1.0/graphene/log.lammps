@@ -1,0 +1,58 @@
+LAMMPS (3 Mar 2020)
+#---- Initialization--
+
+units	        metal
+boundary	p p p
+newton		on
+atom_style      atomic
+dimension       3
+
+
+#--- defining graphene--
+
+read_data	system.data
+  orthogonal box = (0 0 0) to (42.6 24.5944 5)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  800 atoms
+  read_data CPU = 0.0171476 secs
+
+pair_style      airebo  2.5  1  1  10.2
+pair_coeff      * * ./CH.airebo C
+Reading potential file ./CH.airebo with DATE: 2011-10-25
+
+neighbor	2.0 bin
+neigh_modify	delay 3
+
+
+#simulation
+velocity        all create 100.0 1 dist gaussian
+fix             1 all nve
+thermo          100
+timestep        0.001
+
+dump		Graphene all xyz 100 Graphene.xyz
+dump            myDump all atom 100000 dump.atom
+
+restart         100000 gr.restart
+run             100000
+Neighbor list info ...
+  update every 1 steps, delay 3 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.5
+  ghost atom cutoff = 10.5
+  binsize = 5.25, bins = 9 5 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair airebo, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 9.831 | 9.831 | 9.831 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          100   -4439.5618            0   -4429.2339    966061.15 
+     100    6898.9262    -5024.127            0   -4311.6138    595739.86 
+     200    7055.8796   -4783.0445            0   -4054.3214    624342.77 
+     300    12105.836   -4366.2711            0   -3115.9942    958942.56 
+ERROR: Lost atoms: original 800 current 593 (src/thermo.cpp:438)
+Last command: run             100000

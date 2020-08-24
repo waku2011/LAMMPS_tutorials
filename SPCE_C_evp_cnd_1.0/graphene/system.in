@@ -1,0 +1,31 @@
+#---- Initialization--
+
+units	        metal		
+boundary	p p p
+newton		on
+atom_style      atomic
+dimension       3
+
+
+#--- defining graphene--
+
+read_data	system.data
+
+pair_style      airebo  2.5  1  1  10.2
+pair_coeff      * * ./CH.airebo C
+
+neighbor	2.0 bin
+neigh_modify	delay 3
+
+
+#simulation
+velocity        all create 100.0 1 dist gaussian
+fix             1 all nve
+thermo          100
+timestep        0.001
+
+dump		Graphene all xyz 100 Graphene.xyz
+dump            myDump all atom 100000 dump.atom
+
+restart         100000 gr.restart
+run             100000

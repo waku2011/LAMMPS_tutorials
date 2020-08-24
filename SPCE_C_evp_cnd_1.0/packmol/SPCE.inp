@@ -1,0 +1,14 @@
+# distance tol. (typically 2.0A)
+tolerance 2.0
+
+# output format (format: pdb, tinker, xyz, moldy)
+filetype xyz
+
+# define output filename
+output water_output.xyz
+
+# setup of water molecules
+structure water.xyz
+ number 901
+ inside box 0.0 0.0 12 30.0 30.0 42
+end structure

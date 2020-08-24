@@ -1,0 +1,55 @@
+SPCE {
+     	write("Data Atoms"){
+            $atom:H1     $mol @atom:H  0.4238  0.8165  0.0000  0.5773
+            $atom:H2     $mol @atom:H  0.4238 -0.8165  0.0000  0.5773
+            $atom:O      $mol @atom:O -0.8476  0.0000  0.0000  0.0000
+        }
+	write("Data Bonds"){
+            $bond:OH1      @bond:OH    $atom:H1    $atom:O     
+            $bond:OH2      @bond:OH    $atom:H2    $atom:O   
+        }
+        write("Data Angles"){
+            $angle:HOH     @angle:HOH    $atom:H1    $atom:O     $atom:H2    
+        }
+	write_once("Data Masses") {  
+	    @atom:H  1.0080  
+            @atom:O 15.9994
+    	}
+
+ 	write_once("In Settings") {
+
+       	#     atom_id mass 
+	mass @atom:H  1.0080  
+        mass @atom:O 15.9994
+
+	#           atom_i       atom_j       epsilon	sigma 
+        pair_coeff @atom:H      @atom:H      0.000 	0.000
+	pair_coeff @atom:O      @atom:O      0.1553 	3.5533
+	pair_coeff @atom:H      @atom:O      0.000 	0.000
+
+	#           bond_id     k_harmonic	r0             
+        bond_coeff @bond:OH    1000.0		1.0
+
+	#            angle_id    k_harmonic	theta0 
+        angle_coeff @angle:HOH	1000.0		109.47
+
+        group gSPCE type @atom:H @atom:O
+	group hyd type @atom:H
+	group oxy type @atom:O
+
+	fix fShakeSPCE gSPCE shake 0.0001 10 100 b @bond:OH a @angle:HOH
+
+   	}
+
+     	write_once("In Init") {
+            units real
+            atom_style      full
+            bond_style      harmonic
+            angle_style     harmonic
+	    pair_style	    lj/cut/coul/long 12.0 13.0
+	    pair_modify	    mix arithmetic
+            dihedral_style  harmonic
+	    kspace_style    pppm 1.0e-5
+	    kspace_modify   gewald 0.29
+	}
+}

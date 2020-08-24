@@ -1,18 +1,10 @@
 
 # 速度の割り当て
-<<<<<<< HEAD
 velocity   all create 298.0 4928459
 run 0  
 velocity   all scale 298.0               
 
 timestep 1.0  # fs
-=======
-velocity         all create 298.0 4928459
-
-timestep 1.0
-
-thermo_style custom step temp pe etotal press vol atoms  
->>>>>>> 470a4b6fcba75a8582aa87016a1e1942d472a80a
 
 neigh_modify every 1 delay 0 check yes
 
@@ -35,7 +27,6 @@ variable          ylo equal ylo
 variable          yhi equal yhi
 variable          pe equal pe　#ポテンシャルエネルギー
 
-<<<<<<< HEAD
 # region作成
 #region top plane 0 0 100 0 0 -1 units box
 #region top plane 0 0 100 0 0 -1 units lattice
@@ -76,49 +67,12 @@ unfix 3
 # run 1000000  # 1ns
 #unfix 1
 
-=======
-#change_box all boundary p p f
-
-# 削除平面作成
-# ? 範囲指定
-#region top plane 0 0 100 0 0 -1 units box
-#region top plane 0 0 100 0 0 -1 units lattice
-#fix wall all wall/region top lj93 0.0 0.0 1.0
-
-# Solvent(water) evapolation region setting (top 10% box region)
-region top block -1 31 -1 31 90 101
-
-# Solvent evapolation (30 atoms = 10 water molecules per 1000 steps)
-fix evp mobile evaporate 1000 30 top 49892  molecule yes
-compute myTemp mobile temp
-compute_modify myTemp dynamic/dof yes
-
-#　? 削除
-#delete_atoms region top compress yes
-
-# -- run protocols ---
-
-fix 1 mobile npt temp 298.0 298.0 100.0 iso 1.0 1.0 1000.0
- run 10000
-unfix 1
-
-fix 2 mobile nvt temp 298.0 298.0 100.0
- run 20000
-unfix 2
-
->>>>>>> 470a4b6fcba75a8582aa87016a1e1942d472a80a
 #rdfの計算
 #compute	myRDF oxy rdf 50 cutoff 13.0
 #fix		fout2 oxy ave/time 1000 10 10000 c_myRDF[*] file tmp.rdf mode vector
 
-<<<<<<< HEAD
 #fix 3 mobile nve
 # run 10000
 #unfix 3
-=======
-fix 3 mobile nve
- run 10000
-unfix 3
->>>>>>> 470a4b6fcba75a8582aa87016a1e1942d472a80a
 
 write_restart   system.restart

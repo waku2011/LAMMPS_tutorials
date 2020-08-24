@@ -1,0 +1,47 @@
+
+        #     atom_id mass
+        mass @/atom:SPCE/H  1.0080
+        mass @/atom:SPCE/O 15.9994
+
+        #           atom_i       atom_j       epsilon   sigma
+        pair_coeff @/atom:SPCE/H      @/atom:SPCE/H      0.000      0.000
+        pair_coeff @/atom:SPCE/O      @/atom:SPCE/O      0.1553     3.5533
+        pair_coeff @/atom:SPCE/H      @/atom:SPCE/O      0.000      0.000
+
+        #           bond_id     k_harmonic      r0
+        bond_coeff @/bond:SPCE/OH    1000.0           1.0
+
+        #            angle_id    k_harmonic     theta0
+        angle_coeff @/angle:SPCE/HOH  1000.0          109.47
+
+        group gSPCE type @/atom:SPCE/H @/atom:SPCE/O
+        group hyd type @/atom:SPCE/H
+        group oxy type @/atom:SPCE/O
+
+        fix fShakeSPCE gSPCE shake 0.0001 10 100 b @/bond:SPCE/OH a @/angle:SPCE/HOH
+
+        #     atom_id mass
+        mass  @/atom:Graphene/C  12.0107
+
+        # These Lennard-Jones parameters come from
+        #  R. Saito, R. Matsuo, T. Kimura, G. Dresselhaus, M.S. Dresselhaus,
+        #  Chem Phys Lett, 348:187 (2001)
+        pair_coeff  @/atom:Graphene/C      @/atom:Graphene/C     0.068443   3.407
+
+        # --- We must eventually specify the interactions between the atoms ---
+        # --- in different molecule types (graphene-water interactions).    ---
+        # (See Laurent Joly, J. Chem. Phys. 135(21):214705 (2011) for details
+        pair_coeff  @/atom:Graphene/C      @/atom:SPCE/O      0.114     3.28
+        pair_coeff  @/atom:Graphene/C      @/atom:SPCE/H      0.0       3.28
+
+
+        # Define a group consisting of only carbon atoms in graphene molecules
+        group gGraphene type @/atom:Graphene/C
+
+        # Only the gGraphene atoms are immobile.
+        group mobile subtract all gGraphene
+
+        # Use "neigh_modify" to turn off calculation of interactions between immobilized
+        # atoms. (Note: group "gGraphene" was defined in the file "system.insettings")
+        neigh_modify exclude group gGraphene gGraphene
+

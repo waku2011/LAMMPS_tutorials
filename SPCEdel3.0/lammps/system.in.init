@@ -4,8 +4,9 @@
             angle_style     harmonic
 	    pair_style	    lj/cut/coul/long 12.0 13.0
 	    pair_modify	    mix arithmetic
+            dihedral_style  harmonic
 	    kspace_style    pppm 1.0e-5
-	    kspace_modify   gewald 0.29
+#	    kspace_modify   gewald 0.29
    variable cutoff equal 13.0 # Angstroms
    boundary p p p
 #   boundary p p s

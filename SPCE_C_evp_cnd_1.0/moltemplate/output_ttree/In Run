@@ -1,9 +1,4 @@
 
-# 速度の割り当て
-velocity   all create 298.0 4928459
-run 0  
-velocity   all scale 298.0               
-
 timestep 1.0  # fs
 
 neigh_modify every 1 delay 0 check yes
@@ -27,12 +22,22 @@ variable          ylo equal ylo
 variable          yhi equal yhi
 variable          pe equal pe　#ポテンシャルエネルギー
 
-# region作成
+# region/atom group作成
 #region top plane 0 0 100 0 0 -1 units box
 #region top plane 0 0 100 0 0 -1 units lattice
-#fix wall all wall/region top lj93 0.0 0.0 1.0
 # Solvent(water) evapolation region setting (top 10% box region)
+
+region topFix block EDGE EDGE EDGE EDGE 99.5 100.5
+region topG3L block EDGE EDGE EDGE EDGE 89.0  97.0
+region btmG3L block EDGE EDGE EDGE EDGE  1.0  11.0 
+region btmFix block EDGE EDGE EDGE EDGE -0.5   0.5
 region evapRegion block -1 31 -1 31 89.5 99.5
+
+group topFixAtoms region topFix
+group topG3LAtoms region topG3L
+group btmG3LAtoms region btmG3L
+group btmFixAtoms region btmFix
+ 
 
 # Solvent evapolation (30 atoms = 10 water molecules per 1000 steps)
 #fix evp mobile evaporate 1000 30 evapRegion 49892  molecule yes
@@ -44,35 +49,61 @@ thermo_style custom step temp c_myTemp pe etotal press vol atoms
 
 # -- run protocols ---
 
-#fix 1 mobile npt temp 298.0 298.0 100.0 iso 1.0 1.0 1000.0
-# run 1000000  # 1ns
-#unfix 1
+#--- minimization for initialization
 
-#--- nvt initialization 298K/50ps
-fix 1 mobile nvt temp 298.0 298.0 100.0
- run 50000  # 50ps
-unfix 1
+fix   freezeTop topFixAtoms setforce 0 0 0
+fix   freezeBtm btmFixAtoms setforce 0 0 0
+fix   spring solid spring/self  67.6425
+fix   loadbalance all balance 100000 1.0 shift xy 10 1.1 weight time 0.8 out balance.output
+min_style    cg
+minimize     1e-6 1e-8 5000 10000
+write_data   data.system_min
+reset_timestep 0 
 
-#---- nvt ramp temperature to 373K/50ps
-fix 2 mobile nvt temp 298.0 373.0 100.0
- run 50000  # 50ps
+#--- equillibrium 298K/100ps
+
+# 速度の割り当て
+velocity   all create 298.0 4928459 mom yes rot yes dist gaussian
+run 0
+velocity   all scale 298.0
+velocity   topFixAtoms set 0.0 0.0 0.0 
+velocity   btmFixAtoms set 0.0 0.0 0.0
+
+fix       1 mobile nve
+fix       2 mobile temp/berendsen 298.0 298.0 100.0
+fix       3 topG3LAtoms nve
+fix       4 topG3LAtoms temp/berendsen 298.0 298.0 100.0
+fix       5 btmG3LAtoms nve
+fix       6 btmG3LAtoms temp/berendsen 298.0 298.0 100.0
+fix fShakeSPCE gSPCE shake 0.0001 10 100 b 1 a 1
+
+dump         mydump1 all custom 10000 dump_equil.lammpstrj id type x y z vx vy vz
+dump_modify  mydump1 sort id
+
+run         250000
+
+write_data    data.system_equil
+write_restart restart.equil
+
+reset_timestep 0
+undump       mydump1
+
+#---- nvt ramping temperature to 373K/100ps
+
 unfix 2
-
-#---- nvt keep 373K/50ps
-fix 3 mobile nvt temp 373.0 373.0 100.0
- run 50000  # 50ps
 unfix 3
+unfix 4 
+unfix 5
+unfix 6
 
-#fix 1 mobile nvt temp 298.0 298.0 100.0
-# run 1000000  # 1ns
-#unfix 1
+fix          tempramp btmG3LAtoms nvt temp 298.0 373.0 100.0
+
+dump     mydump2 all custom 1000 dump.lammpstrj id type x y z vx vy vz
+dump_modify  mydump2 sort id
+run          1000000
 
 #rdfの計算
 #compute	myRDF oxy rdf 50 cutoff 13.0
 #fix		fout2 oxy ave/time 1000 10 10000 c_myRDF[*] file tmp.rdf mode vector
-
-#fix 3 mobile nve
-# run 10000
-#unfix 3
 
 write_restart   system.restart
